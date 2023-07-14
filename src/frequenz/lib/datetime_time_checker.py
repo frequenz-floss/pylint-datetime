@@ -1,6 +1,10 @@
 """Pylint checker ensure correct usage of datetime module, especially around aware/naive objects."""
 
 import astroid
+
+from typing import Any
+
+import pylint
 from pylint.checkers import BaseChecker
 from pylint.interfaces import IAstroidChecker
 
@@ -43,7 +47,7 @@ class DatetimeChecker(BaseChecker):
         ),
     }
 
-    def __init__(self, linter=None) -> None:
+    def __init__(self, linter: pylint.lint.PyLinter=None) -> None:
         """Initialize checker.
 
         Args:
@@ -51,7 +55,7 @@ class DatetimeChecker(BaseChecker):
         """
         super().__init__(linter)
 
-    def timedelta_with_keywords(self, node, name) -> None:
+    def timedelta_with_keywords(self, node: astroid.node_classes.NodeNG, name: str) -> None:
         """Check calls to timedelta() and datetime.timedelta() for keyword arguments.
 
         Args:
@@ -65,7 +69,8 @@ class DatetimeChecker(BaseChecker):
                 self.add_message("timedelta-no-keyword-args", node=node)
 
     # check for positional arguments cheesy, uses fact, that they have one Attribute Argument.
-    def timezone_argument(self, node, name) -> None:
+
+    def timezone_argument(self, node: astroid.node_classes.NodeNG, name: str) -> None:
         """Check calls to datetime, now, fromtimestamp, astimezone and time for timezone arg.
 
         Args:
@@ -80,7 +85,7 @@ class DatetimeChecker(BaseChecker):
                 if not any(isinstance(arg, astroid.Attribute) for arg in node.args):
                     self.add_message("timezone-no-argument", node=node, args=(name,))
 
-    def naive_functions(self, node, name) -> None:
+    def naive_functions(self, node: astroid.node_classes.NodeNG, name: str) -> None:
         """Check that functions producing only naive objects are never called.
 
         Args:
@@ -90,7 +95,7 @@ class DatetimeChecker(BaseChecker):
         if name in ("today", "utcnow", "utcfromtimestamp", "utctimetuple", "time"):
             self.add_message("naive-datetime-call", node=node, args=(name,))
 
-    def visit_call(self, node) -> None:
+    def visit_call(self, node: astroid.node_classes.NodeNG) -> None:
         """Pylint function responds when any function is called.
 
         Args:
@@ -108,7 +113,7 @@ class DatetimeChecker(BaseChecker):
         self.naive_functions(node, name)
 
     def naive_properties_methods_replace(
-        self, node, assigned_value, assigned_var
+        self, node: astroid.node_classes.NodeNG, assigned_value: Any, assigned_var: Any
     ) -> None:
         """Check for a replace call specifiying timezone after naive property or function.
 
@@ -149,7 +154,7 @@ class DatetimeChecker(BaseChecker):
                 "naive-datetime-no-timezone", node=node, args=(assigned_value,)
             )
 
-    def visit_assign(self, node) -> None:
+    def visit_assign(self, node: astroid.node_classes.NodeNG) -> None:
         """Pylint function responds when any assignment takes place.
 
         Args:
@@ -179,7 +184,7 @@ class DatetimeChecker(BaseChecker):
                         )
 
 
-def register(linter) -> None:
+def register(linter: pylint.lint.PyLinter) -> None:
     """Pylint function to register checker.
 
     Args:
