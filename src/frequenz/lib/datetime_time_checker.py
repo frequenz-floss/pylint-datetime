@@ -1,9 +1,8 @@
 """Pylint checker ensure correct usage of datetime module, especially around aware/naive objects."""
 
-import astroid
-
 from typing import Any
 
+import astroid
 import pylint
 from pylint.checkers import BaseChecker
 from pylint.interfaces import IAstroidChecker
