@@ -4,7 +4,7 @@
 """Tests for the frequenz.pylint_datetime package."""
 import pytest
 
-from frequenz.pylint_datetime import delete_me
+from frequenz.lib import delete_me
 
 
 def test_pylint_datetime_succeeds() -> None:  # TODO(cookiecutter): Remove

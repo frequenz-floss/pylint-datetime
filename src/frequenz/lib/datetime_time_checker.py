@@ -2,16 +2,16 @@
 
 from typing import Any
 
-import astroid
-import pylint
-from pylint.checkers import BaseChecker
-from pylint.interfaces import IAstroidChecker
+import astroid  # type: ignore
+import pylint  # type: ignore
+from pylint.checkers import BaseChecker  # type: ignore
+from pylint.interfaces import IAstroidChecker  # type: ignore
 
 # function calls to fromisoformat, strptime and fromisoformat can't be checked - they parse strings
 # if the specified timezone is None, still allowed although they produce naive objects
 
 
-class DatetimeChecker(BaseChecker):
+class DatetimeChecker(BaseChecker):  # type: ignore
     """class for custom pylint checker."""
 
     __implements__ = IAstroidChecker
@@ -25,9 +25,9 @@ class DatetimeChecker(BaseChecker):
             "timedelta() called without keyword arguments.",
         ),
         "W9998": (
-            'Function call to "%s" should be called with a timezone argument',
+            'Function call to "%s"/"replace" should be called with a timezone argument',
             "timezone-no-argument",
-            'Function call to "%s" should be called with a timezone argument',
+            'Function call to "%s"/"replace" should be called with a timezone argument',
         ),
         "W9997": (
             'Function call to "%s" can only produce naive objects',
