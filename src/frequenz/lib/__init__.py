@@ -1,13 +1,10 @@
 # License: MIT
 # Copyright © 2023 Frequenz Energy-as-a-Service GmbH
 
-"""checker to ensure correct datetime usage with aware objects in datetime module.
-
-TODO(cookiecutter): Add a more descriptive module description.
-"""
+"""checker to ensure correct datetime usage with aware objects in datetime module."""
 
 
-# TODO(cookiecutter): Remove this function
+# TODO(cookiecutter): Remove this function - when it isn't need anymore
 def delete_me(*, blow_up: bool = False) -> bool:
     """Do stuff for demonstration purposes.
 
