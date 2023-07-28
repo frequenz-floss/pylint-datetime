@@ -46,7 +46,7 @@ class DatetimeChecker(BaseChecker):  # type: ignore
         ),
     }
 
-    def __init__(self, linter: pylint.lint.PyLinter=None) -> None:
+    def __init__(self, linter: pylint.lint.PyLinter = None) -> None:
         """Initialize checker.
 
         Args:
@@ -54,7 +54,9 @@ class DatetimeChecker(BaseChecker):  # type: ignore
         """
         super().__init__(linter)
 
-    def timedelta_with_keywords(self, node: astroid.node_classes.NodeNG, name: str) -> None:
+    def timedelta_with_keywords(
+        self, node: astroid.node_classes.NodeNG, name: str
+    ) -> None:
         """Check calls to timedelta() and datetime.timedelta() for keyword arguments.
 
         Args:
