@@ -5,7 +5,6 @@ from typing import Any
 import astroid  # type: ignore
 import pylint  # type: ignore
 from pylint.checkers import BaseChecker  # type: ignore
-from pylint.interfaces import IAstroidChecker  # type: ignore
 
 # function calls to fromisoformat, strptime and fromisoformat can't be checked - they parse strings
 # if the specified timezone is None, still allowed although they produce naive objects
@@ -13,8 +12,6 @@ from pylint.interfaces import IAstroidChecker  # type: ignore
 
 class DatetimeChecker(BaseChecker):  # type: ignore
     """class for custom pylint checker."""
-
-    __implements__ = IAstroidChecker
 
     name = "pylint-datetime"
     priority = -1
@@ -38,11 +35,6 @@ class DatetimeChecker(BaseChecker):  # type: ignore
             'Attribute access "%s" should be followed by a call to replace with timezone argument',
             "naive-datetime-no-timezone",
             'Attribute access "%s" should be followed by a call to replace with timezone argument',
-        ),
-        "W9995": (
-            'Function call "%s" should be followed by a call to replace with timezone argument',
-            "naive-datetime-call-no-timezone",
-            'Function call "%s" should be followed by a call to replace with timezone argument',
         ),
     }
 
@@ -78,7 +70,7 @@ class DatetimeChecker(BaseChecker):  # type: ignore
             node: the node that visit_call originates from.
             name: name of the function being called.
         """
-        if name in ("datetime", "now", "fromtimestamp", "astimezone", "time"):
+        if name in ("datetime", "now", "fromtimestamp", "astimezone"):
             if not any(
                 isinstance(arg, astroid.Keyword) and arg.arg in ("tz", "tzinfo")
                 for arg in node.keywords
@@ -166,7 +158,6 @@ class DatetimeChecker(BaseChecker):  # type: ignore
 
         if isinstance(assigned_var, astroid.AssignName):
             assigned_var_type = assigned_var.inferred()[0]
-
             if assigned_var_type.qname() in ("datetime.datetime", "datetime.time"):
                 if isinstance(assigned_value, astroid.Attribute):
                     if assigned_value.attrname in ("min", "max"):
