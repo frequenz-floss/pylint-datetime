@@ -10,30 +10,30 @@ from pylint import checkers, lint
 # if the specified timezone is None, still allowed although they produce naive objects
 
 
-class DatetimeChecker(checkers.BaseChecker):
+class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
     """class for custom pylint checker."""
 
     name = "pylint-datetime"
     priority = -1
     msgs = {
-        "W9999": (
+        "W9801": (
             "timedelta() called without keyword arguments",
-            "timedelta-no-keyword-args",
+            "datetime-timedelta-no-keyword-args",
             "timedelta() called without keyword arguments.",
         ),
-        "W9998": (
+        "W9802": (
             'Function call to "%s"/"replace" should be called with a timezone argument',
-            "timezone-no-argument",
+            "datetime-call-without-timezone",
             'Function call to "%s"/"replace" should be called with a timezone argument',
         ),
-        "W9997": (
+        "W9803": (
             'Function call to "%s" can only produce naive objects',
-            "naive-datetime-call",
+            "datetime-naive-object-used",
             'Function call to "%s" can only produce naive objects, aware objects necessary',
         ),
-        "W9996": (
+        "W9904": (
             'Attribute access "%s" should be followed by a call to replace with timezone argument',
-            "naive-datetime-no-timezone",
+            "datetime-missing-timezone-replace",
             'Attribute access "%s" should be followed by a call to replace with timezone argument',
         ),
     }
@@ -46,45 +46,36 @@ class DatetimeChecker(checkers.BaseChecker):
         """
         super().__init__(linter)
 
-    def timedelta_with_keywords(self, node: nodes.Call, name: str) -> None:
+    def check_timedelta_called_with_keyword_args(self, node: nodes.Call) -> None:
         """Check calls to timedelta() and datetime.timedelta() for keyword arguments.
 
         Args:
             node: the node that visit_call originates from.
-            name: name of the function being called.
         """
-        if name == "timedelta":
-            for _ in node.args:
-                self.add_message("timedelta-no-keyword-args", node=node)
-            if not node.args and not node.keywords:
-                self.add_message("timedelta-no-keyword-args", node=node)
+        for _ in node.args:
+            self.add_message("datetime-timedelta-no-keyword-args", node=node)
+        if not node.args and not node.keywords:
+            self.add_message("datetime-timedelta-no-keyword-args", node=node)
 
     # check for positional arguments cheesy, uses fact, that they have one Attribute Argument.
 
-    def timezone_argument(self, node: nodes.Call, name: str) -> None:
+    def check_function_called_with_timezone(
+        self, node: nodes.Call, func_name: str
+    ) -> None:
         """Check calls to datetime, now, fromtimestamp, astimezone and time for timezone arg.
 
         Args:
             node: the node that visit_call originates from.
-            name: name of the function being called.
+            func_name: name of the function being called.
         """
-        if name in ("datetime", "now", "fromtimestamp", "astimezone"):
-            if not any(
-                isinstance(arg, astroid.Keyword) and arg.arg in ("tz", "tzinfo")
-                for arg in node.keywords
-            ):
-                if not any(isinstance(arg, astroid.Attribute) for arg in node.args):
-                    self.add_message("timezone-no-argument", node=node, args=(name,))
-
-    def naive_functions(self, node: astroid.node_classes.NodeNG, name: str) -> None:
-        """Check that functions producing only naive objects are never called.
-
-        Args:
-            node: the node that visit_call originates from
-            name: name of the function being called
-        """
-        if name in ("today", "utcnow", "utcfromtimestamp", "utctimetuple", "time"):
-            self.add_message("naive-datetime-call", node=node, args=(name,))
+        if not any(
+            isinstance(arg, astroid.Keyword) and arg.arg in ("tz", "tzinfo")
+            for arg in node.keywords
+        ):
+            if not any(isinstance(arg, astroid.Attribute) for arg in node.args):
+                self.add_message(
+                    "datetime-call-without-timezone", node=node, args=(func_name,)
+                )
 
     def visit_call(self, node: nodes.Call) -> None:
         """Pylint function responds when any function is called.
@@ -92,22 +83,24 @@ class DatetimeChecker(checkers.BaseChecker):
         Args:
             node: origin node for function call.
         """
-
         func = node.func
         assert func is not None
 
         if isinstance(func, (nodes.FunctionDef, astroid.Name)):
-            name = func.name
+            func_name = func.name
         elif isinstance(func, astroid.Attribute):
-            name = func.attrname
+            func_name = func.attrname
         else:
             assert False, "function call without name or attrname"
 
-        self.timedelta_with_keywords(node, name)
+        if func_name == "timedelta":
+            self.check_timedelta_called_with_keyword_args(node)
 
-        self.timezone_argument(node, name)
+        if func_name in ("datetime", "now", "fromtimestamp", "astimezone"):
+            self.check_function_called_with_timezone(node, func_name)
 
-        self.naive_functions(node, name)
+        if func_name in ("today", "utcnow", "utcfromtimestamp", "utctimetuple", "time"):
+            self.add_message("datetime-naive-object-used", node=node, args=(func_name,))
 
     def naive_properties_methods_replace(
         self, node: nodes.Assign, assigned_value: Any, assigned_var: Any
@@ -140,15 +133,19 @@ class DatetimeChecker(checkers.BaseChecker):
                 ):
                     new_node = next_node.value
                     self.add_message(
-                        "timezone-no-argument", node=new_node, args=(assigned_value,)
+                        "datetime-call-without-timezone",
+                        node=new_node,
+                        args=(assigned_value,),
                     )
             else:
                 self.add_message(
-                    "naive-datetime-no-timezone", node=node, args=(assigned_value,)
+                    "datetime-missing-timezone-replace",
+                    node=node,
+                    args=(assigned_value,),
                 )
         if next_is_empty:
             self.add_message(
-                "naive-datetime-no-timezone", node=node, args=(assigned_value,)
+                "datetime-missing-timezone-replace", node=node, args=(assigned_value,)
             )
 
     def visit_assign(self, node: nodes.Assign) -> None:

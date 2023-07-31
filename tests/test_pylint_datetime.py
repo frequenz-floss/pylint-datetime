@@ -4,8 +4,8 @@
 """Tests for the frequenz.pylint_datetime package."""
 from typing import Any
 
-import astroid  # type: ignore
-import pylint.testutils  # type: ignore
+import astroid
+from pylint import testutils
 
 from pylint_datetime import DatetimeChecker
 
@@ -15,7 +15,7 @@ from pylint_datetime import DatetimeChecker
 # maybe this needs to be tested more thoroughly
 
 
-class TestDatetimeChecker(pylint.testutils.CheckerTestCase):  # type: ignore
+class TestDatetimeChecker(testutils.CheckerTestCase):  # type: ignore
     """Test class for DatetimeChecker."""
 
     CHECKER_CLASS = DatetimeChecker
@@ -34,7 +34,7 @@ class TestDatetimeChecker(pylint.testutils.CheckerTestCase):  # type: ignore
             args: arguments to pass to the message.
         """
         with self.assertAddsMessages(
-            pylint.testutils.MessageTest(
+            testutils.MessageTest(
                 msg_id=msg_id,
                 node=node,
                 args=args,
@@ -59,7 +59,7 @@ class TestDatetimeChecker(pylint.testutils.CheckerTestCase):  # type: ignore
             args: arguments to pass to the message.
         """
         with self.assertAddsMessages(
-            pylint.testutils.MessageTest(
+            testutils.MessageTest(
                 msg_id=msg_id,
                 node=node if node2 is None else node2,
                 args=args,
@@ -78,8 +78,8 @@ class TestDatetimeChecker(pylint.testutils.CheckerTestCase):  # type: ignore
         datetime.timedelta(1) #@
         """
         )
-        self.asserting_messages_calls("timedelta-no-keyword-args", call_node_1)
-        self.asserting_messages_calls("timedelta-no-keyword-args", call_node_2)
+        self.asserting_messages_calls("datetime-timedelta-no-keyword-args", call_node_1)
+        self.asserting_messages_calls("datetime-timedelta-no-keyword-args", call_node_2)
 
     def test_timedelta_with_kargs(self) -> None:
         """Test timedelta with keyword arguments."""
@@ -113,16 +113,16 @@ class TestDatetimeChecker(pylint.testutils.CheckerTestCase):  # type: ignore
         """
         )
         self.asserting_messages_calls(
-            "timezone-no-argument", call_node_1, args=("now",)
+            "datetime-call-without-timezone", call_node_1, args=("now",)
         )
         self.asserting_messages_calls(
-            "timezone-no-argument", call_node_2, args=("fromtimestamp",)
+            "datetime-call-without-timezone", call_node_2, args=("fromtimestamp",)
         )
         self.asserting_messages_calls(
-            "timezone-no-argument", call_node_3, args=("datetime",)
+            "datetime-call-without-timezone", call_node_3, args=("datetime",)
         )
         self.asserting_messages_calls(
-            "timezone-no-argument", call_node_4, args=("astimezone",)
+            "datetime-call-without-timezone", call_node_4, args=("astimezone",)
         )
 
     def test_passed_timezone_argument(self) -> None:
@@ -168,19 +168,19 @@ class TestDatetimeChecker(pylint.testutils.CheckerTestCase):  # type: ignore
         """
         )
         self.asserting_messages_calls(
-            "naive-datetime-call", call_node_1, args=("today",)
+            "datetime-naive-object-used", call_node_1, args=("today",)
         )
         self.asserting_messages_calls(
-            "naive-datetime-call", call_node_2, args=("utcnow",)
+            "datetime-naive-object-used", call_node_2, args=("utcnow",)
         )
         self.asserting_messages_calls(
-            "naive-datetime-call", call_node_3, args=("utcfromtimestamp",)
+            "datetime-naive-object-used", call_node_3, args=("utcfromtimestamp",)
         )
         self.asserting_messages_calls(
-            "naive-datetime-call", call_node_4, args=("utctimetuple",)
+            "datetime-naive-object-used", call_node_4, args=("utctimetuple",)
         )
         self.asserting_messages_calls(
-            "naive-datetime-call", call_node_5, args=("time",)
+            "datetime-naive-object-used", call_node_5, args=("time",)
         )
 
     def test_naive_objects_not_replaced(self) -> None:
@@ -204,22 +204,22 @@ class TestDatetimeChecker(pylint.testutils.CheckerTestCase):  # type: ignore
         """
         )
         self.asserting_messages_assign(
-            "naive-datetime-no-timezone", call_node_1, args=("min",)
+            "datetime-missing-timezone-replace", call_node_1, args=("min",)
         )
         self.asserting_messages_assign(
-            "naive-datetime-no-timezone", call_node_2, args=("max",)
+            "datetime-missing-timezone-replace", call_node_2, args=("max",)
         )
         self.asserting_messages_assign(
-            "naive-datetime-no-timezone", call_node_3, args=("fromisocalendar",)
+            "datetime-missing-timezone-replace", call_node_3, args=("fromisocalendar",)
         )
         self.asserting_messages_assign(
-            "naive-datetime-no-timezone", call_node_4, args=("fromordinal",)
+            "datetime-missing-timezone-replace", call_node_4, args=("fromordinal",)
         )
         self.asserting_messages_assign(
-            "naive-datetime-no-timezone", call_node_5, args=("min",)
+            "datetime-missing-timezone-replace", call_node_5, args=("min",)
         )
         self.asserting_messages_assign(
-            "naive-datetime-no-timezone", call_node_6, args=("max",)
+            "datetime-missing-timezone-replace", call_node_6, args=("max",)
         )
 
     def test_naive_objects_falsely_replaced(self) -> None:
@@ -256,22 +256,28 @@ class TestDatetimeChecker(pylint.testutils.CheckerTestCase):  # type: ignore
         """
         )
         self.asserting_messages_assign(
-            "timezone-no-argument", call_node_1, call_node_2, args=("min",)
+            "datetime-call-without-timezone", call_node_1, call_node_2, args=("min",)
         )
         self.asserting_messages_assign(
-            "timezone-no-argument", call_node_3, call_node_4, args=("max",)
+            "datetime-call-without-timezone", call_node_3, call_node_4, args=("max",)
         )
         self.asserting_messages_assign(
-            "timezone-no-argument", call_node_5, call_node_6, args=("fromisocalendar",)
+            "datetime-call-without-timezone",
+            call_node_5,
+            call_node_6,
+            args=("fromisocalendar",),
         )
         self.asserting_messages_assign(
-            "timezone-no-argument", call_node_7, call_node_8, args=("fromordinal",)
+            "datetime-call-without-timezone",
+            call_node_7,
+            call_node_8,
+            args=("fromordinal",),
         )
         self.asserting_messages_assign(
-            "timezone-no-argument", call_node_9, call_node_10, args=("min",)
+            "datetime-call-without-timezone", call_node_9, call_node_10, args=("min",)
         )
         self.asserting_messages_assign(
-            "timezone-no-argument", call_node_11, call_node_12, args=("max",)
+            "datetime-call-without-timezone", call_node_11, call_node_12, args=("max",)
         )
 
     def test_naive_objects_correctly_replaced(self) -> None:

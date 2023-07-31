@@ -115,7 +115,7 @@ asyncio_mode = "auto"
 required_plugins = ["pytest-asyncio", "pytest-mock"]
 
 [[tool.mypy.overrides]]
-module = ["async_solipsism", "async_solipsism.*"]
+module = ["async_solipsism", "async_solipsism.*", "astroid", "astroid.*", "pylint", "pylint.*"]
 ignore_missing_imports = true
 
 [tool.setuptools_scm]
