@@ -256,28 +256,40 @@ class TestDatetimeChecker(testutils.CheckerTestCase):  # type: ignore
         """
         )
         self.asserting_messages_assign(
-            "datetime-call-without-timezone", call_node_1, call_node_2, args=("min",)
+            "datetime-call-without-timezone",
+            call_node_1,
+            call_node_2,
+            args=("replace",),
         )
         self.asserting_messages_assign(
-            "datetime-call-without-timezone", call_node_3, call_node_4, args=("max",)
+            "datetime-call-without-timezone",
+            call_node_3,
+            call_node_4,
+            args=("replace",),
         )
         self.asserting_messages_assign(
             "datetime-call-without-timezone",
             call_node_5,
             call_node_6,
-            args=("fromisocalendar",),
+            args=("replace",),
         )
         self.asserting_messages_assign(
             "datetime-call-without-timezone",
             call_node_7,
             call_node_8,
-            args=("fromordinal",),
+            args=("replace",),
         )
         self.asserting_messages_assign(
-            "datetime-call-without-timezone", call_node_9, call_node_10, args=("min",)
+            "datetime-call-without-timezone",
+            call_node_9,
+            call_node_10,
+            args=("replace",),
         )
         self.asserting_messages_assign(
-            "datetime-call-without-timezone", call_node_11, call_node_12, args=("max",)
+            "datetime-call-without-timezone",
+            call_node_11,
+            call_node_12,
+            args=("replace",),
         )
 
     def test_naive_objects_correctly_replaced(self) -> None:

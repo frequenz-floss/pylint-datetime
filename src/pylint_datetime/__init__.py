@@ -22,9 +22,9 @@ class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
             "timedelta() called without keyword arguments.",
         ),
         "W9802": (
-            'Function call to "%s"/"replace" should be called with a timezone argument',
+            'Function call to "%s" should be called with a timezone argument',
             "datetime-call-without-timezone",
-            'Function call to "%s"/"replace" should be called with a timezone argument',
+            'Function call to "%s" should be called with a timezone argument',
         ),
         "W9803": (
             'Function call to "%s" can only produce naive objects',
@@ -135,7 +135,7 @@ class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
                     self.add_message(
                         "datetime-call-without-timezone",
                         node=new_node,
-                        args=(assigned_value,),
+                        args=("replace",),
                     )
             else:
                 self.add_message(
