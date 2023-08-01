@@ -83,17 +83,21 @@ class TestDatetimeChecker(testutils.CheckerTestCase):  # type: ignore
 
     def test_timedelta_with_kargs(self) -> None:
         """Test timedelta with keyword arguments."""
-        call_node_1, call_node_2 = astroid.extract_node(
+        call_node_1, call_node_2, call_node_3, call_node_4 = astroid.extract_node(
             """
         import datetime
         from datetime import timedelta
         timedelta(seconds=1) #@
         datetime.timedelta(seconds=1) #@
+        timedelta(0) #@
+        datetime.timedelta(0) #@
         """
         )
         with self.assertNoMessages():
             self.checker.visit_call(call_node_1)
             self.checker.visit_call(call_node_2)
+            self.checker.visit_call(call_node_3)
+            self.checker.visit_call(call_node_4)
 
     def test_no_timezone_argument(self) -> None:
         """Test missing timezone arguments."""

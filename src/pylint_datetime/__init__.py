@@ -46,17 +46,6 @@ class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
         """
         super().__init__(linter)
 
-    def check_timedelta_called_with_keyword_args(self, node: nodes.Call) -> None:
-        """Check calls to timedelta() and datetime.timedelta() for keyword arguments.
-
-        Args:
-            node: the node that visit_call originates from.
-        """
-        for _ in node.args:
-            self.add_message("datetime-timedelta-no-keyword-args", node=node)
-        if not node.args and not node.keywords:
-            self.add_message("datetime-timedelta-no-keyword-args", node=node)
-
     # check for positional arguments cheesy, uses fact, that they have one Attribute Argument.
 
     def check_function_called_with_timezone(
@@ -94,7 +83,10 @@ class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
             assert False, "function call without name or attrname"
 
         if func_name == "timedelta":
-            self.check_timedelta_called_with_keyword_args(node)
+            for argument in node.args:
+                if argument.value != 0:
+                    self.add_message("datetime-timedelta-no-keyword-args", node=node)
+                    break
 
         if func_name in ("datetime", "now", "fromtimestamp", "astimezone"):
             self.check_function_called_with_timezone(node, func_name)
