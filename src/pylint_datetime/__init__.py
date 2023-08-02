@@ -3,7 +3,7 @@
 from typing import Any, assert_never
 
 import astroid
-from astroid import bases, nodes, util
+from astroid import nodes, util
 from pylint import checkers, lint
 
 # function calls to fromisoformat, strptime and fromisoformat can't be checked - they parse strings
@@ -32,9 +32,9 @@ class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
             'Function call to "%s" can only produce naive objects, aware objects necessary',
         ),
         "W9904": (
-            'Attribute access "%s" should be followed by a call to replace with timezone argument',
+            'Attribute access "%s" should be directly followed by a call to replace with tzinfo',
             "datetime-missing-timezone-replace",
-            'Attribute access "%s" should be followed by a call to replace with timezone argument',
+            'Attribute access "%s" should be directly followed by a call to replace with tzinfo',
         ),
     }
 
@@ -88,88 +88,67 @@ class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
                     self.add_message("datetime-timedelta-no-keyword-args", node=node)
                     break
 
+        if func_name in ("fromordinal", "fromisocalendar"):
+            if not self.has_replace_with_tzinfo(node):
+                self.add_message(
+                    "datetime-missing-timezone-replace", node=node, args=(func_name,)
+                )
+
         if func_name in ("datetime", "now", "fromtimestamp", "astimezone"):
             self.check_function_called_with_timezone(node, func_name)
 
         if func_name in ("today", "utcnow", "utcfromtimestamp", "utctimetuple", "time"):
             self.add_message("datetime-naive-object-used", node=node, args=(func_name,))
 
-    def naive_properties_methods_replace(
-        self, node: nodes.Assign, assigned_value: Any, assigned_var: Any
-    ) -> None:
-        """Check for a replace call specifiying timezone after naive property or function.
+    def visit_attribute(self, node: astroid.Attribute) -> None:
+        """Check attribute access to datetime.datetime.min/max, datetime.time.min/max.
 
         Args:
-            node: the node that visit_call originates from.
-            assigned_value: the value of the assignment that triggered function call.
-            assigned_var: the variable that the value was assigned to.
+            node: origin node for attribute.
         """
-        next_node = assigned_var
-        next_is_empty = True
-        if next_node and next_node.next_sibling():
-            next_is_empty = False
-            next_node = next_node.next_sibling()
-            if (
-                isinstance(next_node.value, astroid.Call)
-                and isinstance(next_node.value.func, astroid.Attribute)
-                and next_node.value.func.attrname == "replace"
-            ):
-                if not any(
-                    isinstance(arg, astroid.Keyword) and arg.arg == "tzinfo"
-                    for arg in next_node.value.keywords
-                ) and (
-                    not any(
-                        isinstance(arg, astroid.Attribute)
-                        for arg in next_node.value.args
-                    )
-                ):
-                    new_node = next_node.value
-                    self.add_message(
-                        "datetime-call-without-timezone",
-                        node=new_node,
-                        args=("replace",),
-                    )
-            else:
+        if not isinstance(node, astroid.Attribute):
+            print("ooh, hello")
+            return
+        if isinstance(node.expr, astroid.Name):
+            name = node.expr.name
+        elif isinstance(node.expr, astroid.Attribute):
+            name = node.expr.attrname
+        else:
+            return
+        if node.attrname in ("min", "max") and name in (
+            "datetime",
+            "time",
+        ):
+            if not self.has_replace_with_tzinfo(node):
                 self.add_message(
                     "datetime-missing-timezone-replace",
                     node=node,
-                    args=(assigned_value,),
+                    args=(node.attrname,),
                 )
-        if next_is_empty:
-            self.add_message(
-                "datetime-missing-timezone-replace", node=node, args=(assigned_value,)
-            )
 
-    def visit_assign(self, node: nodes.Assign) -> None:
-        """Pylint function responds when any assignment takes place.
+    def has_replace_with_tzinfo(self, node: astroid.Call) -> bool:
+        """Check if the function call has a subsequent call to 'replace()' with 'tzinfo' argument.
 
         Args:
-            node: the node that visit_call originates from.
-        """
-        assigned_var = node.targets[0]
-        assigned_value = node.value
+            node: origin node for function call.
 
-        if isinstance(assigned_var, astroid.AssignName):
-            assigned_var_type = assigned_var.inferred()[0]
-            if assigned_var_type is not util.Uninferable:
-                if assigned_var_type.qname() in ("datetime.datetime", "datetime.time"):
-                    if isinstance(assigned_value, astroid.Attribute):
-                        if assigned_value.attrname in ("min", "max"):
-                            ass_val_name = assigned_value.attrname
-                            self.naive_properties_methods_replace(
-                                node, ass_val_name, assigned_var
-                            )
-                    if isinstance(assigned_value, astroid.Call):
-                        func = assigned_value.func
-                        assert isinstance(func, nodes.Attribute)
-                        if func.attrname in (
-                            "fromordinal",
-                            "fromisocalendar",
-                        ):
-                            ass_val_name = func.attrname
-                            self.naive_properties_methods_replace(
-                                node, ass_val_name, assigned_var
-                            )
+        Returns:
+            bool: if replace call has tzinfo
+        """
+        if (
+            isinstance(node.parent, astroid.Attribute)
+            and node.parent.attrname == "replace"
+        ):
+            for arg in node.parent.parent.args:
+                if isinstance(arg, astroid.Attribute) and arg.expr.name in (
+                    "timezone",
+                    "None",
+                ):
+                    return True
+            for arg in node.parent.parent.keywords:
+                if arg.arg == "tzinfo":
+                    return True
+        return False
 
 
 def register(linter: lint.PyLinter) -> None:
