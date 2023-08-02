@@ -68,16 +68,18 @@ class TestDatetimeChecker(testutils.CheckerTestCase):  # type: ignore
 
     def test_timedelta_without_kargs(self) -> None:
         """Test timedelta without keyword arguments."""
-        call_node_1, call_node_2 = astroid.extract_node(
+        call_node_1, call_node_2, call_node_3 = astroid.extract_node(
             """
         import datetime
-        from datetime import timedelta
+        from datetime import timedelta, datetime
         timedelta(1) #@
         datetime.timedelta(1) #@
+        datetime(1, 1, 1, 1, timezone.utc) #@
         """
         )
         self.asserting_messages_calls("datetime-timedelta-no-keyword-args", call_node_1)
         self.asserting_messages_calls("datetime-timedelta-no-keyword-args", call_node_2)
+        self.asserting_messages_calls("datetime-timedelta-no-keyword-args", call_node_3)
 
     def test_timedelta_with_kargs(self) -> None:
         """Test timedelta with keyword arguments."""
@@ -110,7 +112,7 @@ class TestDatetimeChecker(testutils.CheckerTestCase):  # type: ignore
         from datetime import datetime
         datetime.now() #@
         datetime.fromtimestamp(1)  #@
-        datetime(1, 1, 1, 1, 1, 1, 1)  #@
+        datetime()  #@
         datetime.astimezone()  #@
         """
         )
@@ -140,7 +142,7 @@ class TestDatetimeChecker(testutils.CheckerTestCase):  # type: ignore
         from datetime import datetime, timezone
         datetime.now(tz=timezone.utc) #@
         datetime.fromtimestamp(1, timezone.utc)  #@
-        datetime(1, 1, 1, 1, 1, 1, 1, timezone.utc)  #@
+        datetime(tzinfo=timezone.utc)  #@
         datetime.astimezone(tzinfo=timezone.utc)  #@
         """
         )

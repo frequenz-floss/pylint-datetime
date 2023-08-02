@@ -82,7 +82,7 @@ class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
         else:
             assert False, "function call without name or attrname"
 
-        if func_name == "timedelta":
+        if func_name in ("timedelta", "datetime"):
             for argument in node.args:
                 if argument.value != 0:
                     self.add_message("datetime-timedelta-no-keyword-args", node=node)
