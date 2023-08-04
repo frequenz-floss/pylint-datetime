@@ -1,13 +1,17 @@
-"""Pylint checker ensure correct usage of datetime module, especially around aware/naive objects."""
+# License: MIT
+# Copyright © 2023 Frequenz Energy-as-a-Service GmbH
+
+"""Pylint checker ensure correct usage of datetime module, especially around aware/naive objects.
+
+Function calls to fromisoformat, strptime and fromisoformat can't be checked - they parse strings.
+If the specified timezone is None, still allowed although they produce naive objects.
+"""
 
 from typing import Any, assert_never
 
 import astroid
-from astroid import nodes, util
+from astroid import nodes
 from pylint import checkers, lint
-
-# function calls to fromisoformat, strptime and fromisoformat can't be checked - they parse strings
-# if the specified timezone is None, still allowed although they produce naive objects
 
 
 class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
@@ -31,7 +35,7 @@ class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
             "datetime-naive-object-used",
             'Function call to "%s" can only produce naive objects, aware objects necessary',
         ),
-        "W9904": (
+        "W9804": (
             'Attribute access "%s" should be directly followed by a call to replace with tzinfo',
             "datetime-missing-timezone-replace",
             'Attribute access "%s" should be directly followed by a call to replace with tzinfo',
@@ -46,12 +50,12 @@ class DatetimeChecker(checkers.BaseChecker):  # type: ignore[misc]
         """
         super().__init__(linter)
 
-    # check for positional arguments cheesy, uses fact, that they have one Attribute Argument.
-
     def check_function_called_with_timezone(
         self, node: nodes.Call, func_name: str
     ) -> None:
         """Check calls to datetime, now, fromtimestamp, astimezone and time for timezone arg.
+
+        Check for positional arguments cheesy, uses fact, that they have one Attribute Argument.
 
         Args:
             node: the node that visit_call originates from.
