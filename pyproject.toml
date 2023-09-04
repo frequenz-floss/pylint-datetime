@@ -65,7 +65,7 @@ dev-pylint = [
   "frequenz-pylint-datetime[dev-mkdocs,dev-noxfile,dev-pytest]",
 ]
 dev-pytest = [
-  "pytest == 7.4.0",
+  "pytest == 7.4.1",
   "pytest-mock == 3.11.1",
   "pytest-asyncio == 0.21.1",
   "async-solipsism == 0.5",
