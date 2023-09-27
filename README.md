@@ -1,3 +1,9 @@
+# Archived
+
+This project is suspended for the moment, we discovered a very similar project implementing the same in `flake8`: https://github.com/pjknkda/flake8-datetimez
+
+We'll try it out and if anything is missing, we'll try to contribute upstream and only if that doesn't work, we'll resurrect this project.
+
 # Freqenz Pylint Datetime Library
 
 [![Build Status](https://github.com/frequenz-floss/frequenz-pylint-datetime-python/actions/workflows/ci.yaml/badge.svg)](https://github.com/frequenz-floss/frequenz-pylint-datetime-python/actions/workflows/ci.yaml)
