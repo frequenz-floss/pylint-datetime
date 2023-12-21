@@ -27,6 +27,8 @@ classifiers = [
 requires-python = ">= 3.11, < 4"
 dependencies = [
   "typing-extensions >= 4.5.0, < 5",
+  "astroid >= 2.15.4, < 2.17.0",
+  "pylint >= 2.17.3, < 2.18.0",
 ]
 dynamic = ["version"]
 
@@ -113,7 +115,7 @@ asyncio_mode = "auto"
 required_plugins = ["pytest-asyncio", "pytest-mock"]
 
 [[tool.mypy.overrides]]
-module = ["async_solipsism", "async_solipsism.*"]
+module = ["async_solipsism", "async_solipsism.*", "astroid", "astroid.*", "pylint", "pylint.*"]
 ignore_missing_imports = true
 
 [tool.setuptools_scm]
